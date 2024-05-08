@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C6CF48A62BEBC2D400A231A3 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = C6CF48A52BEBC2D400A231A3 /* ComposableArchitecture */; };
 		C6E106472BEB0F4300BB4A4A /* PokemonxTCAApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6E106462BEB0F4300BB4A4A /* PokemonxTCAApp.swift */; };
 		C6E106492BEB0F4300BB4A4A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6E106482BEB0F4300BB4A4A /* ContentView.swift */; };
 		C6E1064B2BEB0F4600BB4A4A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C6E1064A2BEB0F4600BB4A4A /* Assets.xcassets */; };
@@ -14,6 +15,7 @@
 		C6E106582BEB0F4700BB4A4A /* PokemonxTCATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6E106572BEB0F4700BB4A4A /* PokemonxTCATests.swift */; };
 		C6E106622BEB0F4700BB4A4A /* PokemonxTCAUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6E106612BEB0F4700BB4A4A /* PokemonxTCAUITests.swift */; };
 		C6E106642BEB0F4700BB4A4A /* PokemonxTCAUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6E106632BEB0F4700BB4A4A /* PokemonxTCAUITestsLaunchTests.swift */; };
+		C6E1067C2BEBB9FA00BB4A4A /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = C6E1067B2BEBB9FA00BB4A4A /* .gitignore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +46,7 @@
 		C6E1065D2BEB0F4700BB4A4A /* PokemonxTCAUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PokemonxTCAUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C6E106612BEB0F4700BB4A4A /* PokemonxTCAUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonxTCAUITests.swift; sourceTree = "<group>"; };
 		C6E106632BEB0F4700BB4A4A /* PokemonxTCAUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonxTCAUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		C6E1067B2BEBB9FA00BB4A4A /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +54,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C6CF48A62BEBC2D400A231A3 /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,10 +78,12 @@
 		C6E1063A2BEB0F4200BB4A4A = {
 			isa = PBXGroup;
 			children = (
+				C6E1067B2BEBB9FA00BB4A4A /* .gitignore */,
 				C6E106452BEB0F4300BB4A4A /* PokemonxTCA */,
 				C6E106562BEB0F4700BB4A4A /* PokemonxTCATests */,
 				C6E106602BEB0F4700BB4A4A /* PokemonxTCAUITests */,
 				C6E106442BEB0F4300BB4A4A /* Products */,
+				C6ED27A42BEBC1D700F6545A /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -127,6 +133,13 @@
 			path = PokemonxTCAUITests;
 			sourceTree = "<group>";
 		};
+		C6ED27A42BEBC1D700F6545A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -143,6 +156,9 @@
 			dependencies = (
 			);
 			name = PokemonxTCA;
+			packageProductDependencies = (
+				C6CF48A52BEBC2D400A231A3 /* ComposableArchitecture */,
+			);
 			productName = PokemonxTCA;
 			productReference = C6E106432BEB0F4300BB4A4A /* PokemonxTCA.app */;
 			productType = "com.apple.product-type.application";
@@ -215,6 +231,9 @@
 				Base,
 			);
 			mainGroup = C6E1063A2BEB0F4200BB4A4A;
+			packageReferences = (
+				C6CF48A42BEBC2D400A231A3 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+			);
 			productRefGroup = C6E106442BEB0F4300BB4A4A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -232,6 +251,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C6E1064E2BEB0F4600BB4A4A /* Preview Assets.xcassets in Resources */,
+				C6E1067C2BEBB9FA00BB4A4A /* .gitignore in Resources */,
 				C6E1064B2BEB0F4600BB4A4A /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -588,6 +608,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C6CF48A42BEBC2D400A231A3 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C6CF48A52BEBC2D400A231A3 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C6CF48A42BEBC2D400A231A3 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C6E1063B2BEB0F4200BB4A4A /* Project object */;
 }
