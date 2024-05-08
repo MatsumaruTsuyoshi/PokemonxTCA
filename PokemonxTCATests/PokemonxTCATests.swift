@@ -5,11 +5,10 @@
 //  Created by tsuyoshi.matsumaru on 2024/05/08.
 //
 
-import XCTest
 @testable import PokemonxTCA
+import XCTest
 
 final class PokemonxTCATests: XCTestCase {
-
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
@@ -28,9 +27,8 @@ final class PokemonxTCATests: XCTestCase {
 
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
-        self.measure {
+        measure {
             // Put the code you want to measure the time of here.
         }
     }
-
 }
