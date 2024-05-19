@@ -5,13 +5,16 @@
 //  Created by tsuyoshi.matsumaru on 2024/05/08.
 //
 
+import ComposableArchitecture
 import SwiftUI
 
 @main
 struct PokemonxTCAApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            PokemonListView(store: Store(initialState: PokemonList.State()) {
+                PokemonList()
+            })
         }
     }
 }
