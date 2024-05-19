@@ -15,6 +15,17 @@ import SwiftUINavigationCore
 
 @Reducer
 public struct PokemonList {
+    // 画面遷移用のPath
+    // なんでReducerが必要なんだろうか？
+    // 画面遷移時、例えばPokemonDetailViewを実行しようとすると、引数のStoreOf<PokemonDetail>が必要で、PokemonDetailはReducerであるため？
+    @Reducer(state: .equatable)
+    public enum Path {
+        // pokemonDetailView用のpath
+        // 引数はPokemonDetail Reducer
+        case pokemonDetail(PokemonDetail)
+        // 他の画面があればpathを追加していく
+    }
+
     @ObservableState
     public struct State: Equatable {
         var pokemonListItems: IdentifiedArrayOf<PokemonListItem.State> = []
@@ -23,6 +34,8 @@ public struct PokemonList {
         var index: Int = 1
         let limit: Int = 20 // 一度に取得する数
         let maxLimit: Int = 1302 // 最大数
+        // 画面遷移用のpathをstackしておく変数
+        var path = StackState<Path.State>()
         public init() {}
     }
 
@@ -32,6 +45,10 @@ public struct PokemonList {
         case pokemonListItems(IdentifiedActionOf<PokemonListItem>)
         case binding(BindingAction<State>) // BindableActionを継承すると必須、役割は？
         case loadMore
+        // StackActionOf<R: Reducer> = StackAction<R.State, R.Action>
+        // StackActionOfはtypealias
+        // typealiasについて（https://qiita.com/mono0926/items/1b94242d4139d1982a31）
+        case path(StackActionOf<Path>)
     }
 
     @Dependency(\.pokemonAPIClient) var pokemonAPIClient
@@ -86,12 +103,16 @@ public struct PokemonList {
                 }
             case .binding:
                 return .none
+            // .itemTappedはPokemonListItemのAction
             case let .pokemonListItems(.element(id, .itemTapped)):
-//                guard let pokemonListItem = state.pokemonListItems[id: id]?.pokemon
-//                else { return .none }
-//
-//                state.path.append(.pokemonListItem(pokemonListItem).init(pokemon: pokemonListItem))
+                guard let pokemonListItem = state.pokemonListItems[id: id]?.pokemon
+                else { return .none }
 
+                // state.pathにPathを追加
+                state.path.append(.pokemonDetail(.init(pokemon: pokemonListItem)))
+
+                return .none
+            case .path:
                 return .none
             }
         }
@@ -100,27 +121,10 @@ public struct PokemonList {
         .forEach(\.pokemonListItems, action: \.pokemonListItems) {
             PokemonListItem()
         }
+        // PokemonList ReducerとPath Reducerを接続
+        .forEach(\.path, action: \.path)
     }
 }
-
-extension PokemonList {
-    @Reducer(state: .equatable)
-    public enum Destination {
-        case alert(AlertState<Alert>)
-
-        public enum Alert: Equatable {}
-    }
-
-    // 画面遷移用のPath
-    @Reducer(state: .equatable)
-    public enum Path {
-        // pokemonListItemView用のpath
-        case pokemonListItem(PokemonListItem)
-        // 他の画面があればpathを追加していく
-    }
-}
-
-
 
 public struct PokemonListView: View {
     @Bindable var store: StoreOf<PokemonList>
@@ -131,7 +135,10 @@ public struct PokemonListView: View {
 
     public var body: some View {
         // Stack-based navigation API は Collection で状態を管理する
-        NavigationStack {
+        NavigationStack(
+            // storeのStackStateとStackActionにフォーカスする
+            path: $store.scope(state: \.path, action: \.path)
+        ) {
             Group {
                 if store.isLoading {
                     ProgressView()
@@ -157,6 +164,13 @@ public struct PokemonListView: View {
                 }
             }
             .navigationTitle("ポケモン図鑑")
+        } destination: { store in
+            // state.pathの状態が変われば、ここが動く（たぶん）
+            // store.caseで全てのPathパターンを網羅できる
+            switch store.case {
+            case let .pokemonDetail(store):
+                PokemonDetailView(store: store)
+            }
         }
 
         .onAppear {
