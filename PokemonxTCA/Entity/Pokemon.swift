@@ -22,9 +22,10 @@ public struct Pokemon: Identifiable, Codable, Equatable {
     public let order: Int
     public let weight: Int
     public let sprites: PokemonSprites
+    public let stats: [PokemonStats]
 
     // Public initializer
-    public init(id: Int, name: String, baseExperience: Int, height: Int, isDefault: Bool, order: Int, weight: Int, sprites: PokemonSprites) {
+    public init(id: Int, name: String, baseExperience: Int, height: Int, isDefault: Bool, order: Int, weight: Int, sprites: PokemonSprites, stats: [PokemonStats]) {
         self.id = id
         self.name = name
         self.baseExperience = baseExperience
@@ -33,11 +34,12 @@ public struct Pokemon: Identifiable, Codable, Equatable {
         self.order = order
         self.weight = weight
         self.sprites = sprites
+        self.stats = stats
     }
 }
 
 public extension Pokemon {
     static func mock(id: Int) -> Self {
-        .init(id: id, name: "フシギダネ", baseExperience: 0, height: 40, isDefault: true, order: 0, weight: 10, sprites: PokemonSprites.mock())
+        .init(id: id, name: "フシギダネ", baseExperience: 0, height: 40, isDefault: true, order: 0, weight: 10, sprites: PokemonSprites.mock(), stats: (1...7).map { _ in .mock()})
     }
 }
