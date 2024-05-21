@@ -14,26 +14,27 @@ public struct PokemonDetail {
     @ObservableState
     public struct State: Equatable {
         let pokemon: Pokemon
-        
-        public init(pokemon: Pokemon) {
-            self.pokemon = pokemon
-        }
+        @Shared var hasPokemon: Bool
     }
 
     public enum Action: BindableAction {
         case onAppear
         case binding(BindingAction<State>)
+        case monsterBallButtonTapped
     }
 
     public init() {}
 
     public var body: some ReducerOf<Self> {
         BindingReducer()
-        Reduce { _, action in
+        Reduce { state, action in
             switch action {
             case .onAppear:
                 return .none
             case .binding:
+                return .none
+            case .monsterBallButtonTapped:
+                state.hasPokemon.toggle()
                 return .none
             }
         }
@@ -96,7 +97,21 @@ public struct PokemonDetailView: View {
             }
             .padding()
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    store.send(.monsterBallButtonTapped)
+                } label: {
+                    if store.hasPokemon {
+                        Image(systemName: "circle.circle.fill").foregroundColor(.red)
+                    } else {
+                        Image(systemName: "circle")
+                    }
+                }
+            }
+        }
     }
+
     // カスタムビュー：ステータスバー
     struct StatusBarView: View {
         var label: String
@@ -119,12 +134,10 @@ public struct PokemonDetailView: View {
     }
 }
 
-
-
 #Preview {
     PokemonDetailView(
-        store: .init(initialState: PokemonDetail.State(pokemon: .mock(id: 1))) {
-        PokemonDetail()
-    })
-    .padding()
+        store: .init(initialState: PokemonDetail.State(pokemon: .mock(id: 1), hasPokemon: Shared(false))) {
+            PokemonDetail()
+        })
+        .padding()
 }

@@ -36,7 +36,6 @@ public struct PokemonList {
         let maxLimit: Int = 1302 // 最大数
         // 画面遷移用のpathをstackしておく変数
         var path = StackState<Path.State>()
-        public init() {}
     }
 
     public enum Action: BindableAction {
@@ -79,7 +78,7 @@ public struct PokemonList {
                 case let .success(pokemons):
                     state.pokemonListItems = state.pokemonListItems + .init(
                         uniqueElements: pokemons.map {
-                            .init(pokemon: $0) // どこのinit?
+                            PokemonListItem.State(pokemon: $0, hasPokemon: Shared(false))
                         }
                     )
                     state.index += state.limit
@@ -107,9 +106,11 @@ public struct PokemonList {
             case let .pokemonListItems(.element(id, .itemTapped)):
                 guard let pokemonListItem = state.pokemonListItems[id: id]?.pokemon
                 else { return .none }
+                guard let hasPokemon = state.pokemonListItems[id: id]?.$hasPokemon // $だとShared<Bool>になる、なければBool
+                else { return .none }
 
                 // state.pathにPathを追加
-                state.path.append(.pokemonDetail(.init(pokemon: pokemonListItem)))
+                state.path.append(.pokemonDetail(.init(pokemon: pokemonListItem, hasPokemon: hasPokemon)))
 
                 return .none
             case .path:

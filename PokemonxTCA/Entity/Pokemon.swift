@@ -40,6 +40,6 @@ public struct Pokemon: Identifiable, Codable, Equatable {
 
 public extension Pokemon {
     static func mock(id: Int) -> Self {
-        .init(id: id, name: "フシギダネ", baseExperience: 0, height: 40, isDefault: true, order: 0, weight: 10, sprites: PokemonSprites.mock(), stats: (1...7).map { _ in .mock()})
+        .init(id: id, name: "フシギダネ", baseExperience: 0, height: 40, isDefault: true, order: 0, weight: 10, sprites: PokemonSprites.mock(), stats: (1 ... 7).map { _ in .mock() })
     }
 }

@@ -16,10 +16,16 @@ public struct PokemonListItem {
     public struct State: Equatable, Identifiable {
         public var id: Int { pokemon.id }
         let pokemon: Pokemon
+        @Shared var hasPokemon: Bool
     }
 
     public enum Action {
         case itemTapped
+    }
+
+    @CasePathable
+    enum Delegate {
+        case itemTapped(Shared<Bool>)
     }
 
     public var body: some ReducerOf<Self> { // ここのSelfは何を指すのだろう？おそらく、State,Actionだと思うが
@@ -45,7 +51,15 @@ struct PokemonListItemView: View {
                 }
                 placeholder: { ProgressView() }
 
-                Text(store.pokemon.name)
+                HStack {
+                    if store.hasPokemon {
+                        Image(systemName: "circle.circle.fill").foregroundColor(.red)
+                    } else {
+                        Image(systemName: "circle")
+                    }
+
+                    Text(store.pokemon.name)
+                }
             }
         }
     }
@@ -54,7 +68,7 @@ struct PokemonListItemView: View {
 #Preview {
     PokemonListItemView(
         store: .init(
-            initialState: PokemonListItem.State(pokemon: .mock(id: 1)))
+            initialState: PokemonListItem.State(pokemon: .mock(id: 1), hasPokemon: Shared(false)))
         {
             PokemonListItem()
         }
