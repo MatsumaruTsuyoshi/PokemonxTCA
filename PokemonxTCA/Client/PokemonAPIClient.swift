@@ -21,8 +21,8 @@ import Foundation
 
 @DependencyClient
 public struct PokemonAPIClinet: Sendable {
+    // @Sendableってなんだ？
     public var searchPokemonDetails: @Sendable (_ id: Int, _ limit: Int) async throws -> [Pokemon]
-    // searchPokemonDetailsでも作る？for文回して[Pokemon]を返すとか
 }
 
 /**

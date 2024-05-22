@@ -30,6 +30,7 @@ public struct PokemonList {
     public struct State: Equatable {
         var pokemonListItems: IdentifiedArrayOf<PokemonListItem.State> = []
         var isLoading: Bool = false
+        var isMoreLoading: Bool = false
         var canLoadMore: Bool = true
         var index: Int = 1
         let limit: Int = 20 // 一度に取得する数
@@ -60,24 +61,14 @@ public struct PokemonList {
             switch action {
             case .onAppear:
                 state.isLoading = true
-                let currentIndex = state.index
-                let limit = state.limit
-
-                return .run { send in
-                    await send(
-                        .searchPokemonResponse(
-                            Result {
-                                try await pokemonAPIClient.searchPokemonDetails(id: currentIndex, limit: limit)
-                            }
-                        )
-                    )
-                }
+                return searchPokemonDetails(index: state.index, state.limit)
             case let .searchPokemonResponse(result):
                 state.isLoading = false
+                state.isMoreLoading = false
                 switch result {
                 case let .success(pokemons):
-                    state.pokemonListItems = state.pokemonListItems + .init(
-                        uniqueElements: pokemons.map {
+                    state.pokemonListItems.append(contentsOf:
+                        pokemons.map {
                             PokemonListItem.State(pokemon: $0, hasPokemon: Shared(false))
                         }
                     )
@@ -89,21 +80,12 @@ public struct PokemonList {
                     return .none
                 }
             case .loadMore:
-                let currentIndex = state.index
-                let limit = state.limit
-                return .run { send in
-                    await send(
-                        .searchPokemonResponse(
-                            Result {
-                                try await pokemonAPIClient.searchPokemonDetails(id: currentIndex, limit: limit)
-                            }
-                        )
-                    )
-                }
+                state.isMoreLoading = true
+                return searchPokemonDetails(index: state.index, state.limit)
             case .binding:
                 return .none
-            // .itemTappedはPokemonListItemのAction
-            case let .pokemonListItems(.element(id, .itemTapped)):
+            // PokemonListItem ReducerのActionにdelegateを追加することで、親Reducerであるここの実装部分で使えるActionを限定的にすることができる。
+            case let .pokemonListItems(.element(id: id, action: .delegate(_))):
                 guard let pokemonListItem = state.pokemonListItems[id: id]?.pokemon
                 else { return .none }
                 guard let hasPokemon = state.pokemonListItems[id: id]?.$hasPokemon // $だとShared<Bool>になる、なければBool
@@ -115,6 +97,8 @@ public struct PokemonList {
                 return .none
             case .path:
                 return .none
+            case .pokemonListItems:
+                return .none
             }
         }
         // PokemonList ReducerとPokemonListItem Reducer接続
@@ -124,6 +108,18 @@ public struct PokemonList {
         }
         // PokemonList ReducerとPath Reducerを接続
         .forEach(\.path, action: \.path)
+    }
+
+    func searchPokemonDetails(index currentIndex: Int, _ limit: Int) -> Effect<Action> {
+        .run { send in
+            await send(
+                .searchPokemonResponse(
+                    Result {
+                        try await pokemonAPIClient.searchPokemonDetails(id: currentIndex, limit: limit)
+                    }
+                )
+            )
+        }
     }
 }
 
@@ -145,21 +141,26 @@ public struct PokemonListView: View {
                     ProgressView()
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 20) {
-                            ForEach(
-                                store.scope(
-                                    state: \.pokemonListItems,
-                                    action: \.pokemonListItems
-                                ),
-                                content: PokemonListItemView.init(store:)
-                            )
-                        }
-                        if store.canLoadMore {
-                            Text("Loading...")
-                                .padding()
-                                .onAppear {
+                        VStack {
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 20) {
+                                ForEach(
+                                    store.scope(
+                                        state: \.pokemonListItems,
+                                        action: \.pokemonListItems
+                                    ),
+                                    content: PokemonListItemView.init(store:)
+                                )
+                            }
+                            if store.canLoadMore && !store.isMoreLoading {
+                                Button {
                                     store.send(.loadMore)
-                                }
+                                } label: {
+                                    Text("追加取得")
+                                }.padding()
+                            }
+                            if store.isMoreLoading {
+                                ProgressView()
+                            }
                         }
                     }
                 }

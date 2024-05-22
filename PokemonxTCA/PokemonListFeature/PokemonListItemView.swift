@@ -21,17 +21,21 @@ public struct PokemonListItem {
 
     public enum Action {
         case itemTapped
-    }
+        case delegate(Delegate)
 
-    @CasePathable
-    enum Delegate {
-        case itemTapped(Shared<Bool>)
+        // 役割が分かっていない
+        @CasePathable
+        public enum Delegate {
+            case itemTapped
+        }
     }
 
     public var body: some ReducerOf<Self> { // ここのSelfは何を指すのだろう？おそらく、State,Actionだと思うが
         Reduce { _, action in
             switch action {
             case .itemTapped:
+                return .send(.delegate(.itemTapped))
+            case .delegate:
                 return .none
             }
         }
@@ -49,7 +53,9 @@ struct PokemonListItemView: View {
                 AsyncImage(url: URL(string: store.pokemon.sprites.frontDefault!)) { // fixme ..!
                     image in image.resizable()
                 }
-                placeholder: { ProgressView() }
+                placeholder: {
+                    ProgressView()
+                }.frame(width: 140, height: 140)
 
                 HStack {
                     if store.hasPokemon {
@@ -62,6 +68,7 @@ struct PokemonListItemView: View {
                 }
             }
         }
+        .frame(width: 160, height: 160)
     }
 }
 
