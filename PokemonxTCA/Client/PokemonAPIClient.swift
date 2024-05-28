@@ -19,9 +19,14 @@ import Foundation
 
  */
 
+/// DependenciesMacrosの"@DependencyClient"を使うことで、ボイラープレートを大幅に削減できる
+///  参考：https://qiita.com/takehilo/items/0b941c5f8e4625599cdb
+///
+/// Sendableとはデータ競合が発生せず安全に渡せるデータであることを表す
+/// 
+/// 参考：https://qiita.com/takehilo/items/39a3d4b14f7e1555e8c9
 @DependencyClient
 public struct PokemonAPIClinet: Sendable {
-    // @Sendableってなんだ？
     public var searchPokemonDetails: @Sendable (_ id: Int, _ limit: Int) async throws -> [Pokemon]
 }
 
@@ -47,11 +52,7 @@ extension PokemonAPIClinet: DependencyKey {
     }
 }
 
-private let jsonDecoder: JSONDecoder = {
-    let decoder = JSONDecoder()
-    decoder.keyDecodingStrategy = .convertFromSnakeCase
-    return decoder
-}()
+
 
 /**
  DI用
@@ -74,3 +75,10 @@ extension PokemonAPIClinet: TestDependencyKey {
 
     public static let testValue = Self()
 }
+
+
+private let jsonDecoder: JSONDecoder = {
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    return decoder
+}()

@@ -26,15 +26,15 @@ public struct PokemonListItem {
         // 役割が分かっていない
         @CasePathable
         public enum Delegate {
-            case itemTapped
+            case goToDetail(Pokemon, Shared<Bool>)
         }
     }
 
     public var body: some ReducerOf<Self> { // ここのSelfは何を指すのだろう？おそらく、State,Actionだと思うが
-        Reduce { _, action in
+        Reduce { state, action in
             switch action {
             case .itemTapped:
-                return .send(.delegate(.itemTapped))
+                return .send(.delegate(.goToDetail(state.pokemon, state.$hasPokemon)))
             case .delegate:
                 return .none
             }

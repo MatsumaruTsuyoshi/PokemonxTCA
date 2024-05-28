@@ -15,19 +15,22 @@ import SwiftUINavigationCore
 
 @Reducer
 public struct PokemonList {
-    // 画面遷移用のPath
-    // なんでReducerが必要なんだろうか？
-    // 画面遷移時、例えばPokemonDetailViewを実行しようとすると、引数のStoreOf<PokemonDetail>が必要で、PokemonDetailはReducerであるため？
+    ///  【Navigation】
+    ///  PathはStateとActionを保持したいのでReducerと定義する。
+    ///   以前はStateとActionをぞれぞれ書いており冗長だったが、Reducerマクロのおかげでスッキリ（参考: https://pointfreeco.github.io/swift-composable-architecture/main/documentation/composablearchitecture/migratingto1.8#Destination-and-path-reducers ）
+    ///  handlingはNavigationStackのdestinationが持っている。
+    ///  .equatbleはPokemonList StateがEquatableプロトコルに準拠しているの必要になる
     @Reducer(state: .equatable)
     public enum Path {
-        // pokemonDetailView用のpath
-        // 引数はPokemonDetail Reducer
+        /// pokemonDetailView用のpath,引数はPokemonDetail Reducer
+        /// 他の画面があればpathを追加していく
         case pokemonDetail(PokemonDetail)
-        // 他の画面があればpathを追加していく
     }
 
     @ObservableState
     public struct State: Equatable {
+        /// public typealias IdentifiedArrayOf<Element> = IdentifiedArray<Element.ID, Element>
+        /// IdentifiedArrayOfはユニークなidをもつArray
         var pokemonListItems: IdentifiedArrayOf<PokemonListItem.State> = []
         var isLoading: Bool = false
         var isMoreLoading: Bool = false
@@ -35,28 +38,26 @@ public struct PokemonList {
         var index: Int = 1
         let limit: Int = 20 // 一度に取得する数
         let maxLimit: Int = 1302 // 最大数
-        // 画面遷移用のpathをstackしておく変数
+        /// 画面遷移用のpathをstackしておく変数
         var path = StackState<Path.State>()
     }
 
-    public enum Action: BindableAction {
+    public enum Action {
         case onAppear
         case searchPokemonResponse(Result<[Pokemon], Error>)
         case pokemonListItems(IdentifiedActionOf<PokemonListItem>)
-        case binding(BindingAction<State>) // BindableActionを継承すると必須、役割は？
         case loadMore
-        // StackActionOf<R: Reducer> = StackAction<R.State, R.Action>
-        // StackActionOfはtypealias
-        // typealiasについて（https://qiita.com/mono0926/items/1b94242d4139d1982a31）
+        /// StackActionOfはtypealias
+        /// StackActionOf<R: Reducer> = StackAction<R.State, R.Action>
         case path(StackActionOf<Path>)
     }
 
+    /// Dependencyは依存性の管理をするため。UnitTestやPreviewなどで役立つ。
+    /// 「\ .」はkey pathを意味する。型安全にプロパティへの参照を表現する方法です。
+    /// 省略せずに書くと”\DependencyValues.pokemonAPIClient”となる
     @Dependency(\.pokemonAPIClient) var pokemonAPIClient
 
-    public init() {}
-
     public var body: some ReducerOf<Self> {
-        BindingReducer()
         Reduce<State, Action> { state, action in
             switch action {
             case .onAppear:
@@ -65,8 +66,10 @@ public struct PokemonList {
             case let .searchPokemonResponse(result):
                 state.isLoading = false
                 state.isMoreLoading = false
+
                 switch result {
                 case let .success(pokemons):
+                    /// contentsOfは配列の末尾にappendしていく
                     state.pokemonListItems.append(contentsOf:
                         pokemons.map {
                             PokemonListItem.State(pokemon: $0, hasPokemon: Shared(false))
@@ -76,24 +79,20 @@ public struct PokemonList {
                     state.canLoadMore = state.index < state.maxLimit
                     return .none
                 case .failure:
-                    // error handling
+                    /// error handling
                     return .none
                 }
             case .loadMore:
                 state.isMoreLoading = true
                 return searchPokemonDetails(index: state.index, state.limit)
-            case .binding:
-                return .none
-            // PokemonListItem ReducerのActionにdelegateを追加することで、親Reducerであるここの実装部分で使えるActionを限定的にすることができる。
-            case let .pokemonListItems(.element(id: id, action: .delegate(_))):
-                guard let pokemonListItem = state.pokemonListItems[id: id]?.pokemon
-                else { return .none }
-                guard let hasPokemon = state.pokemonListItems[id: id]?.$hasPokemon // $だとShared<Bool>になる、なければBool
-                else { return .none }
 
-                // state.pathにPathを追加
-                state.path.append(.pokemonDetail(.init(pokemon: pokemonListItem, hasPokemon: hasPokemon)))
+            /// PokemonListItem ReducerのActionにdelegateを追加することで、
+            /// 親Reducerであるここの実装部分で使えるActionを限定的にすることができる。
+            ///  .goToDetailはPokemonListItemのDelegateActionである。
+            case let .pokemonListItems(.element(id: _, action: .delegate(.goToDetail(pokemon, hasPokemon)))):
 
+                /// state.pathにPathを追加。追加するとNavigationStackのdestinationが動く
+                state.path.append(.pokemonDetail(.init(pokemon: pokemon, hasPokemon: hasPokemon)))
                 return .none
             case .path:
                 return .none
@@ -101,15 +100,20 @@ public struct PokemonList {
                 return .none
             }
         }
-        // PokemonList ReducerとPokemonListItem Reducer接続
-        // Action に指定している KeyPath は純粋な KeyPath ではなく Point-Free のライブラリである CasePath の機能を利用した CaseKeyPath というものになっています。（意味がよく分かっていない）
+        /// PokemonList ReducerとPokemonListItem Reducer接続
+        /// これがないと.pokemonListItemsは反応しない
         .forEach(\.pokemonListItems, action: \.pokemonListItems) {
             PokemonListItem()
         }
-        // PokemonList ReducerとPath Reducerを接続
+
+        /// 【Navigation】
+        /// PokemonList ReducerとPath Reducerを接続（NavigationStackの場合）
         .forEach(\.path, action: \.path)
     }
 
+    /// 初期読み込みと追加読み込みを共通化している関数
+    /// 省略しなければ"Effect.run"となる。非同期処理を実行し、その結果に基づいてアクションを発行する
+    /// 非同期を並列で動かしたい場合はwithTaskGroup使うとよいみたい（　https://qiita.com/takehilo/items/24f930dddf20d0c82234　）
     func searchPokemonDetails(index currentIndex: Int, _ limit: Int) -> Effect<Action> {
         .run { send in
             await send(
@@ -131,9 +135,10 @@ public struct PokemonListView: View {
     }
 
     public var body: some View {
-        // Stack-based navigation API は Collection で状態を管理する
+        /// Stack-based navigation API は Collection で状態を管理する
         NavigationStack(
-            // storeのStackStateとStackActionにフォーカスする
+            /// storeのStackStateとStackActionにフォーカスする
+            /// pathはBindingなので$が必要
             path: $store.scope(state: \.path, action: \.path)
         ) {
             Group {
@@ -144,12 +149,14 @@ public struct PokemonListView: View {
                         VStack {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 20) {
                                 ForEach(
+                                    /// ここはChildState,ChildActionだけの世界に絞っているイメージ
                                     store.scope(
                                         state: \.pokemonListItems,
                                         action: \.pokemonListItems
-                                    ),
-                                    content: PokemonListItemView.init(store:)
-                                )
+                                    )
+                                ) { childStore in
+                                    PokemonListItemView(store: childStore)
+                                }
                             }
                             if store.canLoadMore && !store.isMoreLoading {
                                 Button {
@@ -167,8 +174,9 @@ public struct PokemonListView: View {
             }
             .navigationTitle("ポケモン図鑑")
         } destination: { store in
-            // state.pathの状態が変われば、ここが動く（たぶん）
-            // store.caseで全てのPathパターンを網羅できる
+            /// 【Navigation】
+            /// state.pathの状態が変われば、ここが動く
+            /// store.caseで全てのPathパターンを網羅できる
             switch store.case {
             case let .pokemonDetail(store):
                 PokemonDetailView(store: store)

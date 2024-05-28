@@ -19,8 +19,13 @@ public struct PokemonDetail {
 
     public enum Action: BindableAction {
         case onAppear
+        /***
+         BindableActionを継承すると必須
+         「ActionしたときにStateの変更をする」というのはよくある実装になりますが、
+         それぞれActionを作成しReducerにロジックを実装するのはかなり冗長になるので、
+         BindingActionとBindingReducerを使うことで必要な処理（例えばValidationなど）だけ実装することができる。 公式Doc：https://pointfreeco.github.io/swift-composable-architecture/main/documentation/composablearchitecture/bindings
+         */
         case binding(BindingAction<State>)
-        case monsterBallButtonTapped
     }
 
     public init() {}
@@ -31,10 +36,13 @@ public struct PokemonDetail {
             switch action {
             case .onAppear:
                 return .none
-            case .binding:
+            case .binding(\.hasPokemon):
+                debugPrint(state.hasPokemon)
+                /***
+                 hasPokemonがtrueの時にshow dialogなどの処理をする
+                 */
                 return .none
-            case .monsterBallButtonTapped:
-                state.hasPokemon.toggle()
+            case .binding:
                 return .none
             }
         }
@@ -99,15 +107,14 @@ public struct PokemonDetailView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    store.send(.monsterBallButtonTapped)
-                } label: {
-                    if store.hasPokemon {
+                Toggle(
+                    isOn: $store.hasPokemon,
+                    label: { if store.hasPokemon {
                         Image(systemName: "circle.circle.fill").foregroundColor(.red)
                     } else {
                         Image(systemName: "circle")
-                    }
-                }
+                    }}
+                )
             }
         }
     }
