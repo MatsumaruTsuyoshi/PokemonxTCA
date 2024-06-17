@@ -15,6 +15,7 @@ import SwiftUINavigationCore
 
 @Reducer
 public struct PokemonList {
+    ///
     ///  【Navigation】
     ///  PathはStateとActionを保持したいのでReducerと定義する。
     ///   以前はStateとActionをぞれぞれ書いており冗長だったが、Reducerマクロのおかげでスッキリ（参考: https://pointfreeco.github.io/swift-composable-architecture/main/documentation/composablearchitecture/migratingto1.8#Destination-and-path-reducers ）
