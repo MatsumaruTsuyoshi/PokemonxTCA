@@ -45,7 +45,7 @@ public struct PokemonListItem {
 struct PokemonListItemView: View {
     let store: StoreOf<PokemonListItem>
 
-    var body: some View { // what is some?
+    var body: some View { // Viewプロトコルに準拠(https://zenn.dev/kyuko/articles/cc1f2512ee6b3f)
         Button {
             store.send(.itemTapped)
         } label: {

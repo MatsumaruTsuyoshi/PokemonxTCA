@@ -57,7 +57,7 @@ extension PokemonAPIClinet: DependencyKey {
 /**
  DI用
  */
-
+/// コメントを
 public extension DependencyValues {
     var pokemonAPIClient: PokemonAPIClinet {
         get { self[PokemonAPIClinet.self] }
